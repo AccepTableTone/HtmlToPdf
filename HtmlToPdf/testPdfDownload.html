@@ -1,0 +1,50 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+</head>
+<body>
+    Hmmmmmmmm ? .!..----[../]
+    <script type="text/javascript">
+        pdftest = {
+
+            showFile: function(blob) {
+                // It is necessary to create a new blob object with mime-type explicitly set
+                // otherwise only Chrome works like it should
+                var newBlob = new Blob([blob], { type: "application/pdf" });
+
+                // IE doesn't allow using a blob object directly as link href
+                // instead it is necessary to use msSaveOrOpenBlob
+                if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+                    window.navigator.msSaveOrOpenBlob(newBlob);
+                    return;
+                }
+
+                // For other browsers: 
+                // Create a link pointing to the ObjectURL containing the blob.
+                const data = window.URL.createObjectURL(newBlob);
+                var link = document.createElement('a');
+                link.href = data;
+                link.download = "file.pdf";
+                link.click();
+
+                // For Firefox it is necessary to delay revoking the ObjectURL
+                setTimeout(function () { window.URL.revokeObjectURL(data), 100 });
+            },
+            getPdf: function () {
+                fetch("http://localhost:50382/api/getnodepdf", { responseType: 'arraybuffer' })
+                    .then(res => res.json())
+                    .then(data => {
+                        fetch("data:application/pdf;base64," + data)
+                            .then(res => res.blob())
+                            .then(this.showFile);
+
+                    });
+            }
+        };
+
+        pdftest.getPdf();
+    </script>
+</body>
+</html>
